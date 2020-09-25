@@ -1,0 +1,62 @@
+[
+    {
+        "symbol": "AUY",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 2,
+        "price": 4.73
+    },
+    {
+        "symbol": "LYG",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 4,
+        "price": 1.6
+    },
+    {
+        "symbol": "ITUB",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 10,
+        "price": 4.24
+    },
+    {
+        "symbol": "BBD",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 10,
+        "price": 3.67
+    },
+    {
+        "symbol": "ING",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 4,
+        "price": 7.12
+    },
+    {
+        "symbol": "LVS",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 2,
+        "price": 45.46
+    },
+    {
+        "symbol": "TSLA",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 1,
+        "price": 429.92
+    },
+    {
+        "symbol": "TSLA",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 1,
+        "price": 395.5
+    },
+    {
+        "symbol": "HL",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 5,
+        "price": 4.9
+    },
+    {
+        "symbol": "TSLA",
+        "bought": "2020-09-15T22:53:35.832Z",
+        "amount": 1,
+        "price": 380.36
+    }
+]
