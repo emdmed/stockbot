@@ -41,5 +41,5 @@ app.post("/subscribe", function(req, res){
 
 server.listen(process.env.PORT || port);
 console.log("Init Stock Crawler ***")
-
+apiHandler.runMainLoop()
 

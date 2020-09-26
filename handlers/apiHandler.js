@@ -4,11 +4,18 @@ const config = require("../config")
 const chalk = require("chalk");
 const fs = require("fs");
 const CEDEARS = require("../balanzCEDEARS");
+const requestDelayInSeconds = 30 
 let mystocks = JSON.parse(fs.readFileSync("data/mystocks.json"));
 
 async function fetchHTML(url) {
-    const { data } = await axios.get(url)
-    return cheerio.load(data)
+    const axiosresponse = await axios.get(url, {timeout: 1000} ).catch(err=>{console.log("Request timeout")})
+
+    if(!axiosresponse){
+        return "error"
+    }else {
+        return cheerio.load(axiosresponse.data)
+    }
+
 }
 
 var todayStockData = [];
@@ -18,22 +25,25 @@ var profitArray = [];
 const apiHandler = {
     searchStock,
     mainLoop,
-    searchBuyStocks
+    searchBuyStocks,
+    runMainLoop
 }
 
 async function searchStock(symbol){
     //look for prevclose, open and  current value
     const $ = await fetchHTML(config.url.production + symbol)
+    if($ === "error"){
 
-    let obj = {
-        symbol: symbol,
-        date: new Date(),
-        current: parseFloat($("#quote-header-info").find("span[data-reactid='32']").text().replace(/,/g, "")),
-        openValue: parseFloat($("span[data-reactid='103']").text().replace(/,/g, "")),
-        prevClose: parseFloat($("span[data-reactid='98']").text().replace(/,/g, ""))
+    } else {
+        let obj = {
+            symbol: symbol,
+            date: new Date(),
+            current: parseFloat($("#quote-header-info").find("span[data-reactid='32']").text().replace(/,/g, "")),
+            openValue: parseFloat($("span[data-reactid='103']").text().replace(/,/g, "")),
+            prevClose: parseFloat($("span[data-reactid='98']").text().replace(/,/g, ""))
+        }
+        return obj
     }
-
-    return obj
 }
 
 async function mainLoop(){
@@ -42,25 +52,24 @@ async function mainLoop(){
     let allsymbols = findSymbols();
     await Promise.all(allsymbols.map(async (i)=>{
         let stockdata = await searchStock(i)
-        todayStockData.push(stockdata);
-        instanceStockData.push(stockdata);
+        if(stockdata === undefined){
+
+        } else {
+            todayStockData.push(stockdata);
+            instanceStockData.push(stockdata);
+        }
     }))
 
-    //console.log("All Stock Data ",todayStockData)
-
-    //check if profit
-    await checkForProfit();
-    console.log("")
-    console.log("")
+    return instanceStockData
 }
 
-async function checkForProfit(){
+async function checkForProfit(instanceStocks){
     console.log("")
     console.log("checking for profits...")
     console.log("--------------------------")
     mystocks = JSON.parse(fs.readFileSync("data/mystocks.json"));
     for(let j = 0; j < mystocks.length; j++){
-        await Promise.all(instanceStockData.map(async (i)=>{
+        await Promise.all(instanceStocks.map(async (i)=>{
             if(mystocks[j].symbol === i.symbol){
                 //symbols match
                 //compare buy value with current value
@@ -115,56 +124,68 @@ function findSymbols(){
 
 async function searchBuyStocks(){
     //get all major losers
-
+    console.log("")
+    console.log("-----")
+    console.log("Getting major losers...")
+    console.log("-----")
+    console.log("")
     const $2 = await fetchHTML("https://finance.yahoo.com/losers?offset=0&count=100")
-    let line = $2("td[aria-label='Symbol']")
-    let loss = $2("td[aria-label='% Change']")
-    for(let i = 0; i < line.length; i++){
-        //check if available at Balanz CEDEARS
-        let found = CEDEARS.indexOf($2(line[i]).text())
-        if(found === -1){} else {
-            console.log("CEDEAR available for purchase: " + $2(line[i]).text() + " " +  $2(loss[i]).text())
-            let stocktobuy = await searchStock($2(line[i]).text())
-            console.log(stocktobuy)
+    if($2 === "error"){
+
+    } else {
+        let line = $2("td[aria-label='Symbol']")
+        let loss = $2("td[aria-label='% Change']")
+        for(let i = 0; i < line.length; i++){
+            //check if available at Balanz CEDEARS
+            let found = CEDEARS.indexOf($2(line[i]).text())
+            if(found === -1){} else {
+                console.log("CEDEAR available for purchase: " + $2(line[i]).text() + " " +  $2(loss[i]).text())
+                let stocktobuy = await searchStock($2(line[i]).text())
+                console.log(stocktobuy)
+            }
         }
     }
+}
 
+//MAIN LOOP
+function runMainLoop(){
+    setInterval(async () => {
+        let now = new Date();
+        console.log("Running mainloop...")
+
+        if(now.getHours() > 3 && now.getHours() <= 23){
+            console.log("Time - " + now.getHours() + ":" + now.getMinutes())
+            let instance = await mainLoop()
+            if(instance.length === 0){
+                console.log("Instance HTML error")
+            } else {
+                await checkForProfit(instance);
+                await searchBuyStocks()
+            }
+        } 
+    
+        if(now.getHours() === 9 && now.getMinutes() === 59){
+            console.log("---------------------")
+            console.log("- * Market Open * -")
+            console.log("---------------------")
+        }
+    
+        if(now.getHours() === 15 && now.getMinutes() === 59){
+            console.log("---------------------")
+            console.log("- * Market Closed * -")
+            console.log("---------------------")
+    
+            //render json file with all todays values and then reset
+            console.log("Writing Stocks file...")
+            fs.writeFileSync("data/historicalStockData/" + now.getDate() + "-" + now.getMonth() + 1 + "-" + now.getFullYear()  + "-data.json", JSON.stringify(todayStockData))
+            todayStockData = [];
+        }
+    
+    }, requestDelayInSeconds * 1000);
 }
 
 
-//mainLoop()
-
-
-//MAIN LOOP
-setInterval(() => {
-
-    let now = new Date();
-  
-
-    if(now.getHours() > 9 && now.getHours() < 18){
-        console.log("Time - " + now.getHours() + ":" + now.getMinutes())
-        mainLoop()
-        searchBuyStocks()
-    } 
-
-    if(now.getHours() === 9 && now.getMinutes() === 59){
-        console.log("---------------------")
-        console.log("- * Market Open * -")
-        console.log("---------------------")
-    }
-
-    if(now.getHours() === 15 && now.getMinutes() === 59){
-        console.log("---------------------")
-        console.log("- * Market Closed * -")
-        console.log("---------------------")
-
-        //render json file with all todays values and then reset
-        console.log("Writing Stocks file...")
-        fs.writeFileSync("data/historicalStockData/" + now.getDate() + "-" + now.getMonth() + 1 + "-" + now.getFullYear()  + "-data.json", JSON.stringify(todayStockData))
-        todayStockData = [];
-    }
-
-}, 300000);
+module.exports = apiHandler;
 
 
 
