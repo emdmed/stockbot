@@ -5,6 +5,9 @@ const chalk = require("chalk");
 const fs = require("fs");
 const CEDEARS = require("../balanzCEDEARS");
 const requestDelayInSeconds = 30 
+const requestDelayInMinutes = 1
+var MAINCLOCK = mainClock();
+var figlet = require("figlet")
 let mystocks = JSON.parse(fs.readFileSync("data/mystocks.json"));
 
 async function fetchHTML(url) {
@@ -153,8 +156,8 @@ function runMainLoop(){
         let now = new Date();
         console.log("Running mainloop...")
 
-        if(now.getHours() > 3 && now.getHours() <= 23){
-            console.log("Time - " + now.getHours() + ":" + now.getMinutes())
+        if(now.getHours() > 8 && now.getHours() <= 15){
+            console.log("Time - " + MAINCLOCK)
             let instance = await mainLoop()
             if(instance.length === 0){
                 console.log("Instance HTML error")
@@ -164,24 +167,36 @@ function runMainLoop(){
             }
         } 
     
-        if(now.getHours() === 9 && now.getMinutes() === 59){
-            console.log("---------------------")
-            console.log("- * Market Open * -")
-            console.log("---------------------")
-        }
-    
-        if(now.getHours() === 15 && now.getMinutes() === 59){
+        if(MAINCLOCK === "15:01"){
             console.log("---------------------")
             console.log("- * Market Closed * -")
             console.log("---------------------")
-    
-            //render json file with all todays values and then reset
-            console.log("Writing Stocks file...")
-            fs.writeFileSync("data/historicalStockData/" + now.getDate() + "-" + now.getMonth() + 1 + "-" + now.getFullYear()  + "-data.json", JSON.stringify(todayStockData))
-            todayStockData = [];
+
+            if(fs.existsSync("data/historicalStockData/" + now.getDate() + "-" + now.getMonth() + 1 + "-" + now.getFullYear()  + "-data.json")){
+
+            } else {
+                //render json file with all todays values and then reset
+                console.log("Writing Stocks file...")
+                fs.writeFileSync("data/historicalStockData/" + now.getDate() + "-" + now.getMonth() + 1 + "-" + now.getFullYear()  + "-data.json", JSON.stringify(todayStockData))
+                todayStockData = [];
+            }
+      
         }
     
-    }, requestDelayInSeconds * 1000);
+    }, requestDelayInMinutes * 60000);
+}
+
+function mainClock(){
+    setInterval(() => {
+        let now = new Date();
+        let minutes = 0;
+        if(now.getMinutes().length === 1){
+            minutes = "0" + now.getMinutes()
+        } else {
+            minutes = now.getMinutes()
+        }
+        return now.getHours() + ":" + minutes
+    }, 1000);
 }
 
 

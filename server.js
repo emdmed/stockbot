@@ -11,6 +11,7 @@ const publicVapidKey = "BERFtuniQ3lkLYfgxI2p43QluJypt29m8pnMxbfzNJ8aQbokQENB5eBO
 const privateVapidKey = "AgrtAP177VgGHuBBKC6Lvg53tDcYf5FO3Bj-PixRavg";
 const bodyParser = require("body-parser");
 const fs = require("fs");
+var figlet = require("figlet")
 
 app.use(express.static(__dirname + "/client"));
 
@@ -40,6 +41,15 @@ app.post("/subscribe", function(req, res){
 
 
 server.listen(process.env.PORT || port);
-console.log("Init Stock Crawler ***")
+
+figlet('Init Stock Crawler', function(err, data) {
+    if (err) {
+        console.log('Something went wrong...');
+        console.dir(err);
+        return;
+    }
+    console.log(data)
+});
+
 apiHandler.runMainLoop()
 
