@@ -163,7 +163,7 @@ function runMainLoop(){
     setInterval(async () => {
         let now = new Date();
         
-        if(now.getHours() > 8 && now.getHours() <= 20){
+        if(now.getHours() > 10 && now.getHours() <= 16){
             console.log("")
             console.log("Running mainloop...")
             console.log("Time - " + MAINCLOCK)
@@ -176,7 +176,7 @@ function runMainLoop(){
             }
         } 
     
-        if(MAINCLOCK === "15:01"){
+        if(MAINCLOCK === "16:03"){
             console.log("---------------------")
             console.log("- * Market Closed * -")
             console.log("---------------------")

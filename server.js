@@ -3,7 +3,7 @@ const app = express();
 
 //const bodyParser = require("body-parser");
 const config = require("./config")
-const port = 3000;
+const port = 5555;
 const apiHandler = require("./handlers/apiHandler");
 const webpush = require("web-push")
 const server = require("http").createServer(app);
