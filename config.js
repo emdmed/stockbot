@@ -30,7 +30,7 @@ let config = {
         }
     },
     dbName: "stocks",
-    profit: 45,
+    profit: 20,
     checkInterval: 30
 }
 

@@ -6,12 +6,12 @@ const fs = require("fs");
 const CEDEARS = require("../balanzCEDEARS");
 const requestDelayInSeconds = 30 
 const requestDelayInMinutes = 1
-var MAINCLOCK = mainClock();
+var MAINCLOCK
 var figlet = require("figlet")
 let mystocks = JSON.parse(fs.readFileSync("data/mystocks.json"));
 
 async function fetchHTML(url) {
-    const axiosresponse = await axios.get(url, {timeout: 1000} ).catch(err=>{console.log("Request timeout")})
+    const axiosresponse = await axios.get(url, {timeout: 1000} ).catch(err=>{console.log("Request timeout ", url)})
 
     if(!axiosresponse){
         return "error"
@@ -84,9 +84,16 @@ async function checkForProfit(instanceStocks){
                     profitArray.push(diff.toFixed(2) * mystocks[j].amount);
 
                     if(diff * mystocks[j].amount >= config.profit){
-                        console.log(chalk.green("**SELL " + i.symbol + " **"))
+                        console.log(chalk.green("**SELL " + i.symbol + "**"))
                         //send push notification to device
                     }
+                    console.log("--------------------------")
+                }else if (mystocks[j].price > i.current){
+                    let result = i.current * 100 / mystocks[j].price - 100
+                    let diff = i.current - mystocks[j].price;
+                    console.log(result.toFixed(1), "% profit", chalk.red("(" + diff.toFixed(2) * mystocks[j].amount, " USD)"), i.symbol, " - bought at ", mystocks[j].price, " current price ", i.current)
+                    profitArray.push(diff.toFixed(2) * mystocks[j].amount);
+
                     console.log("--------------------------")
                 } else {
                     console.log(i.symbol + " No profit")
@@ -142,6 +149,7 @@ async function searchBuyStocks(){
             //check if available at Balanz CEDEARS
             let found = CEDEARS.indexOf($2(line[i]).text())
             if(found === -1){} else {
+                console.log("")
                 console.log("CEDEAR available for purchase: " + $2(line[i]).text() + " " +  $2(loss[i]).text())
                 let stocktobuy = await searchStock($2(line[i]).text())
                 console.log(stocktobuy)
@@ -154,9 +162,10 @@ async function searchBuyStocks(){
 function runMainLoop(){
     setInterval(async () => {
         let now = new Date();
-        console.log("Running mainloop...")
-
-        if(now.getHours() > 8 && now.getHours() <= 15){
+        
+        if(now.getHours() > 8 && now.getHours() <= 20){
+            console.log("")
+            console.log("Running mainloop...")
             console.log("Time - " + MAINCLOCK)
             let instance = await mainLoop()
             if(instance.length === 0){
@@ -186,17 +195,20 @@ function runMainLoop(){
     }, requestDelayInMinutes * 60000);
 }
 
+mainClock()
+
 function mainClock(){
     setInterval(() => {
         let now = new Date();
         let minutes = 0;
-        if(now.getMinutes().length === 1){
+        let min = now.getMinutes()
+        if(min < 9){
             minutes = "0" + now.getMinutes()
         } else {
             minutes = now.getMinutes()
         }
-        return now.getHours() + ":" + minutes
-    }, 1000);
+        MAINCLOCK =  now.getHours() + ":" + minutes
+    }, 60000);
 }
 
 
