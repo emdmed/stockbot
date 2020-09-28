@@ -11,7 +11,7 @@ var figlet = require("figlet")
 let mystocks = JSON.parse(fs.readFileSync("data/mystocks.json"));
 
 async function fetchHTML(url) {
-    const axiosresponse = await axios.get(url, {timeout: 1000} ).catch(err=>{console.log("Request timeout ", url)})
+    const axiosresponse = await axios.get(url, {timeout: 3000} ).catch(err=>{console.log("Request timeout ", url)})
 
     if(!axiosresponse){
         return "error"
@@ -140,6 +140,7 @@ async function searchBuyStocks(){
     console.log("-----")
     console.log("")
     const $2 = await fetchHTML("https://finance.yahoo.com/losers?offset=0&count=100")
+    console.log($2)
     if($2 === "error"){
 
     } else {
@@ -163,7 +164,7 @@ function runMainLoop(){
     setInterval(async () => {
         let now = new Date();
         
-        if(now.getHours() > 10 && now.getHours() <= 16){
+        if(now.getHours() > 9 && now.getHours() <= 16){
             console.log("")
             console.log("Running mainloop...")
             console.log("Time - " + MAINCLOCK)
